@@ -34,15 +34,17 @@ The result is a set of small but compounding inconsistencies, enough that a deve
 
 ---
 
-### 3. Endpoint type enum is fundamentally incompatible between user docs and API (critical)
+### 3. Endpoint type enum is incomplete in user docs (critical)
 
 **Location:** `/voice/endpoints` vs `/api-reference/reference/endpoints`
 
-**Problem:** `/voice/endpoints` says endpoint types are exactly two values — `agent` (AI voice provider) or `webhook` — and shows `type: "agent"` with provider details inside `provider_config`. The OpenAPI schema requires `type` ∈ `["webhook","vapi","retell","livekit","elevenlabs","vogent","custom_sip"]` — `agent` is not a valid value. The per-provider config objects also use specific field names: ElevenLabs requires `elevenlabs_agent_id`, Vapi requires `assistant_id`, Retell requires `agent_id`, LiveKit requires both `livekit_sip_trunk_id` and `livekit_sip_uri`. The user-doc "Supported AI Agent Providers" list also omits Vogent, which has both an integration page and an OpenAPI enum entry.
+**Problem:** The `/voice/endpoints` page says endpoint types are exactly two values: `agent` or `webhook`. The OpenAPI schema actually supports nine types: `webhook`, `agent`, `vapi`, `retell`, `livekit`, `elevenlabs`, `vogent`, `custom_sip`, and `direct_sip`. The user docs present `agent` as the only way to connect an AI voice provider, which means developers never learn about the provider-specific types (`vapi`, `retell`, `elevenlabs`, etc.) that most of them will actually need.
 
-**Consequence:** Every developer who copies the user-doc example to create an endpoint gets a validation error. There is no migration note explaining the renames. Agents will hallucinate "agent" as a valid value forever because it's the type used in the prose-narrative examples.
+The per-provider config objects also require specific field names the user docs don't mention. ElevenLabs requires `elevenlabs_agent_id`, Vapi requires `assistant_id`, Retell requires `agent_id`, and LiveKit requires both `livekit_sip_trunk_id` and `livekit_sip_uri`. Vogent is missing from the user docs entirely, even though it has both an integration page and a valid type in the schema.
 
-**The fix:** Rewrite `/voice/endpoints` to match the OpenAPI enum, show one example per provider with the exact required field names, add Vogent, and add an explicit "Valid types" callout near the top.
+**Consequence:** A developer building a Vapi or Retell integration reads the user docs, sees only `agent` and `webhook`, and has no idea that provider-specific types exist or what fields they require. They either guess or dig through the API reference to piece it together themselves.
+
+**The fix:** Rewrite `/voice/endpoints` to list all valid type values, show one working example per provider with the exact required fields, add Vogent, and add a "Valid types" callout near the top of the page.
 
 ---
 
